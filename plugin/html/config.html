@@ -1,0 +1,46 @@
+<div id="plugin-container">
+
+</div>
+
+<script id="plugin-template" type="text/x-jsrender">
+    <h2>{{html:configTitle}}</h2>
+    <!-- section1 activate plug-in -->
+    <h3>{{html:pluginActivation.pluginActivation}}</h3>
+    <div class="block">
+        <label class="kintoneplugin-label">
+                <span></span>
+              </label>
+        <div class="kintoneplugin-row"></div>
+        <span class="kintoneplugin-input-checkbox-item kintoneplugin-input-checkbox-item-inline">
+                <input type="checkbox" id="activation">
+                <label for="activation">{{html:pluginActivation.pluginActive}}</label>
+              </span>
+    </div>
+    <!-- section2 kintone fields settings -->
+    <h3>{{html:kintoneFieldConfig}}</h3>
+    <div class="kintoneplugin-row">{{html:textKintoneFields}}</div>
+    </label>
+    {{for kintoneFields}}
+    <div class="block">
+        <label class="kintoneplugin-label">
+                <span>{{html:title}}</span>
+                <span class="kintoneplugin-require">{{:require}}</span>
+              </label>
+        <div class="kintoneplugin-row">{{html:row}}</div>
+        <div class="kintoneplugin-select-outer">
+            <div class="kintoneplugin-select">
+                <select id="{{:id}}"><option value=""> ----- </option>
+                  {{for fields}}
+                    <option value="{{html:code}}">{{html:code}} [{{html:type}}]</option>
+                  {{/for}}
+                  </select>
+            </div>
+        </div>
+    </div>
+    {{/for}}
+    <!-- section3 buttons -->
+    <div class="block">
+        <button id="submit" class="kintoneplugin-button-dialog-ok">{{html:pluginSubmit}}</button>
+        <button id="cancel" class="kintoneplugin-button-dialog-cancel">{{html:pluginCancel}}</button>
+    </div>
+</script>

@@ -1,0 +1,42 @@
+{
+    "manifest_version": 1,
+    "version": 1,
+    "type": "APP",
+    "name": {
+        "ja": "テーブル行数プラグイン",
+        "en": "Row Number Plug-in",
+        "zh": "Row Number Plug-in"
+    },
+    "description": {
+        "ja": "レコードの中にあるテーブルの行数を表示するプラグインです。",
+        "en": "Automatically fills in the row number to a field in a record's table.",
+        "zh": "Automatically fills in the row number to a field in a record's table."
+    },
+    "icon": "image/icon.png",
+    "desktop": {
+        "js": [
+            "https://js.kintone.com/jquery/3.3.1/jquery.min.js",
+            "https://js.kintone.com/jsrender/0.9.90/jsrender.min.js",
+            "js/customize.js"
+        ],
+        "css": [
+            "css/51-current-default.css"
+        ]
+    },
+    "config": {
+        "html": "html/config.html",
+        "js": [
+            "https://js.kintone.com/jquery/2.2.4/jquery.min.js",
+            "https://js.kintone.com/jsrender/0.9.90/jsrender.min.js",
+            "js/config.js"
+        ],
+        "css": [
+            "css/51-current-default.css",
+            "css/config.css"
+        ],
+        "required_params": [
+            "textField",
+            "charCountField"
+        ]
+    }
+}
