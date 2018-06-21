@@ -14,11 +14,11 @@ jQuery.noConflict();
             pluginActivation: 'Plug-in activation',
             pluginActive: 'Active',
             kintoneFieldConfig: 'Kintone field settings',
-            kintoneTextField: 'Text',
-            kintoneCharCountField: 'Character Count',
+            kintoneTableField: 'Table',
+            kintoneRowNumField: 'Row Number',
             pluginSubmit: '     Save   ',
             pluginCancel: '     Cancel   ',
-            textCharCount: 'Character Count (plug-in)',
+            textRowNum: 'Row Number (plug-in)',
             textKintoneFields: 'Please create the following fields in your app form.',
             textApiError: 'Error occurred.'
         },
@@ -27,25 +27,25 @@ jQuery.noConflict();
             pluginActivation: 'プラグインアクティベーション',
             pluginActive: '有効化',
             kintoneFieldConfig: 'kintoneフィールド設定',
-            kintoneTextField: '文字列',
-            kintoneCharCountField: '文字数',
+            kintoneTableField: 'テーブル',
+            kintoneRowNumField: '行数',
             pluginSubmit: '     保存   ',
             pluginCancel: 'キャンセル',
-            textCharCount: '文字数 (プラグイン)',
+            textRowNum: 'テーブル行数 (プラグイン)',
             textKintoneFields: '次のフィールドを設定してください。',
             textApiError: 'エラー発生'
         }
     };
     var i18n = LANG in terms ? terms[LANG] : terms.en;
 
-    // append events
+    // append events (call in renderHtml)
     var appendEvents = function appendEvents() {
         // save plug-in settings
         $('#submit').click(function() {
             var config = {};
             config.activation = $('#activation').prop('checked') ? 'active' : 'deactive';
-            config.textField = $('#text-field').val();
-            config.charCountField = $('#charCount-field').val();
+            config.tableField = $('#table-field').val();
+            config.rowNumField = $('#rowNum-field').val();
             kintone.plugin.app.setConfig(config);
         });
 
@@ -71,17 +71,17 @@ jQuery.noConflict();
             kintoneFieldConfig: i18n.kintoneFieldConfig,
             textKintoneFields: i18n.textKintoneFields,
             kintoneFields: [{
-                title: i18n.kintoneTextField,
+                title: i18n.kintoneTableField,
                 require: '*',
                 row: '',
-                id: 'text-field',
-                fields: fields['text-field']
+                id: 'table-field',
+                fields: fields['table-field']
             }, {
-                title: i18n.kintoneCharCountField,
+                title: i18n.kintoneRowNumField,
                 require: '*',
                 row: '',
-                id: 'charCount-field',
-                fields: fields['charCount-field']
+                id: 'rowNum-field',
+                fields: fields['rowNum-field']
             }],
             // section3 buttons
             pluginSubmit: i18n.pluginSubmit,
@@ -97,31 +97,39 @@ jQuery.noConflict();
             'app': kintone.app.getId()
         }, function(resp) {
             var fields = {
-                'text-field': [],
-                'charCount-field': []
+                'table-field': [],
+                'rowNum-field': []
             };
+            //collect the table fields in the app
             for (var key in resp.properties) {
                 var field = resp.properties[key];
-                var item = {
-                    label: field.label || field.code,
-                    code: field.code,
-                    type: field.type
-                };
-                switch (field.type) {
-                    case 'SINGLE_LINE_TEXT':
-                        fields['text-field'].push(item);
-                        break;
-                    case 'NUMBER':
-                        fields['charCount-field'].push(item);
-                        break;
-                    default:
-                        break;
+                if (field.type == 'SUBTABLE') {
+                    var item = {
+                        label: field.label || field.code,
+                        code: field.code,
+                        type: field.type
+                    };
+                    fields['table-field'].push(item);
+
+                    //collect the number fields inside the table
+                    for (var subkey in field.fields) {
+                        var subfield = field.fields[subkey];
+                        if (subfield.type == 'NUMBER') {
+                                var subitem = {
+                                    label: item.label + ': ' + (subfield.label || subfield.code),
+                                    code: subfield.code,
+                                    type: subfield.type
+                                };
+                                fields['rowNum-field'].push(subitem);
+                        }
+                    }
                 }
             }
+            //sort the options for each dropdown
             Object.keys(fields).forEach(function(f) {
                 fields[f].sort(function(a, b) {
-                    var aa = a.label || a.code;
-                    var bb = b.label || b.code;
+                    var aa = a.label + a.code;
+                    var bb = b.label + b.code;
                     aa = aa.toUpperCase();
                     bb = bb.toUpperCase();
                     if (aa < bb) {
@@ -132,13 +140,14 @@ jQuery.noConflict();
                     return 0;
                 });
             });
+            //create the page
             createHtml(fields);
-            // set existing values
+            // if previously set, set to existing values
             var config = kintone.plugin.app.getConfig(PLUGIN_ID);
             if (config) {
                 $('#activation').prop('checked', config.activation === 'active');
-                $('#text-field').val(config.textField);
-                $('#charCount-field').val(config.charCountField);
+                $('#table-field').val(config.tableField);
+                $('#rowNum-field').val(config.rowNumField);
             }
             // append events
             appendEvents();

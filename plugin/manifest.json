@@ -8,7 +8,7 @@
         "zh": "Row Number Plug-in"
     },
     "description": {
-        "ja": "レコードの中にあるテーブルの行数を表示するプラグインです。",
+        "ja": "レコードの中にあるテーブルに行数を記入するプラグインです。",
         "en": "Automatically fills in the row number to a field in a record's table.",
         "zh": "Automatically fills in the row number to a field in a record's table."
     },
@@ -35,8 +35,8 @@
             "css/config.css"
         ],
         "required_params": [
-            "textField",
-            "charCountField"
+            "tableField",
+            "rowNumField"
         ]
     }
 }
