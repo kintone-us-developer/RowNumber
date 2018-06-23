@@ -38,8 +38,69 @@ jQuery.noConflict();
     };
     var i18n = LANG in terms ? terms[LANG] : terms.en;
 
+    // helper function: collects the fields of a certain type for a dropdown.
+    var dropDownCollect = function dropDownCollect(fields, res, subRes, type) {
+        //collect the table fields in the app
+        for (var key in fields) {
+            var field = fields[key];
+            if (field.type == type) {
+                var item = {
+                    label: field.label || field.code,
+                    code: field.code,
+                    type: field.type,
+                };
+                res.push(item);
+                //save the table's fields for later
+                if (subRes) {
+                    subRes[field.code] = {
+                        'organized': false,
+                        'fields': field.fields
+                    };
+                }
+            }
+        }
+        dropDownSort(res);
+    };
+
+    // helper function: sorts a list of fields alphabetically.
+    var dropDownSort = function dropDownSort(fields) {
+        fields.sort(function(a, b) {
+            var aa = a.label + a.code;
+            var bb = b.label + b.code;
+            aa = aa.toUpperCase();
+            bb = bb.toUpperCase();
+            if (aa < bb) {
+                return -1;
+            } else if (aa > bb) {
+                return 1;
+            }
+            return 0;
+        });
+    };
+
     // append events (call in renderHtml)
-    var appendEvents = function appendEvents() {
+    var appendEvents = function appendEvents(subTableFields) {
+        // change row number dropdown options to table's fields
+        $('#table-field').change(function() {
+            var tableFields = subTableFields[$('#table-field').val()];
+            // template & items settings
+            // '#option-template' is defined in config.html
+            var rowNumTemplate = $.templates(document.querySelector('#option-template'));
+            var tableNumFields;
+            if (tableFields.organized) {
+                tableNumFields = tableFields.fields;
+            } else {
+                tableNumFields = [];
+                dropDownCollect(tableFields.fields, tableNumFields, false, 'NUMBER');
+                tableFields.organized = true;
+                tableFields.fields = tableNumFields;
+            }
+            var rowNumItems = {
+                subfields: tableNumFields
+            };
+            $('#rowNum-field').html(rowNumTemplate(rowNumItems));
+        });
+
         // save plug-in settings
         $('#submit').click(function() {
             var config = {};
@@ -56,7 +117,7 @@ jQuery.noConflict();
     };
 
     // create HTML (call in renderHtml)
-    var createHtml = function(fields) {
+    var createHtml = function(tableFields) {
         // template & items settings
         // '#plugin-template' is defined in config.html
         var template = $.templates(document.querySelector('#plugin-template'));
@@ -75,13 +136,13 @@ jQuery.noConflict();
                 require: '*',
                 row: '',
                 id: 'table-field',
-                fields: fields['table-field']
+                fields: tableFields
             }, {
                 title: i18n.kintoneRowNumField,
                 require: '*',
                 row: '',
                 id: 'rowNum-field',
-                fields: fields['rowNum-field']
+                fields: []
             }],
             // section3 buttons
             pluginSubmit: i18n.pluginSubmit,
@@ -96,52 +157,12 @@ jQuery.noConflict();
         kintone.api(kintone.api.url('/k/v1/preview/app/form/fields', true), 'GET', {
             'app': kintone.app.getId()
         }, function(resp) {
-            var fields = {
-                'table-field': [],
-                'rowNum-field': []
-            };
+            var tableFields = [];
+            var subTableFields = {};
             //collect the table fields in the app
-            for (var key in resp.properties) {
-                var field = resp.properties[key];
-                if (field.type == 'SUBTABLE') {
-                    var item = {
-                        label: field.label || field.code,
-                        code: field.code,
-                        type: field.type
-                    };
-                    fields['table-field'].push(item);
-
-                    //collect the number fields inside the table
-                    for (var subkey in field.fields) {
-                        var subfield = field.fields[subkey];
-                        if (subfield.type == 'NUMBER') {
-                                var subitem = {
-                                    label: item.label + ': ' + (subfield.label || subfield.code),
-                                    code: subfield.code,
-                                    type: subfield.type
-                                };
-                                fields['rowNum-field'].push(subitem);
-                        }
-                    }
-                }
-            }
-            //sort the options for each dropdown
-            Object.keys(fields).forEach(function(f) {
-                fields[f].sort(function(a, b) {
-                    var aa = a.label + a.code;
-                    var bb = b.label + b.code;
-                    aa = aa.toUpperCase();
-                    bb = bb.toUpperCase();
-                    if (aa < bb) {
-                        return -1;
-                    } else if (aa > bb) {
-                        return 1;
-                    }
-                    return 0;
-                });
-            });
+            dropDownCollect(resp.properties, tableFields, subTableFields, 'SUBTABLE');
             //create the page
-            createHtml(fields);
+            createHtml(tableFields);
             // if previously set, set to existing values
             var config = kintone.plugin.app.getConfig(PLUGIN_ID);
             if (config) {
@@ -150,7 +171,7 @@ jQuery.noConflict();
                 $('#rowNum-field').val(config.rowNumField);
             }
             // append events
-            appendEvents();
+            appendEvents(subTableFields);
         });
     };
 

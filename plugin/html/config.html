@@ -44,3 +44,10 @@
         <button id="cancel" class="kintoneplugin-button-dialog-cancel">{{html:pluginCancel}}</button>
     </div>
 </script>
+
+<script id="option-template" type="text/x-jsrender">
+    <option value=""> ----- </option>
+      {{for subfields}}
+        <option value="{{html:code}}">{{html:label}} [{{html:code}}]</option>
+      {{/for}}
+</script>
