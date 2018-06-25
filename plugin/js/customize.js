@@ -20,12 +20,23 @@ var rowsChange=['app.record.create.change.'+tableField,
                 'app.record.edit.change.'+tableField,
                 'app.record.index.edit.change.'+tableField];
 
+var editRecord=['app.record.edit.show'];
+
+
+kintone.events.on(editRecord,function(event){
+  var numberOfRows=event.record[tableField].value;
+  for(var i=0; i<=numberOfRows.length-1; i++){
+    numberOfRows[i].value[rowsField].disabled=true;
+  }
+  return event;
+});
 
 kintone.events.on(load, function (event) {
 var rows = event.record[tableField].value;
 var forceDefaultValue=rows[0].value[rowsField].value=1;
 rows[0].value[rowsField].value=forceDefaultValue;
 rows[0].value[rowsField].disabled=true;
+
 return event;
 });
 
