@@ -3,31 +3,42 @@ jQuery.noConflict();
     "use strict";
 
     // plug-in config
-    var config = kintone.plugin.app.getConfig(PLUGIN_ID);
-    // activation
-    if (config && config.activation !== 'active') {
-        return;
-    }
+var config = kintone.plugin.app.getConfig(PLUGIN_ID);
+if(config&&config.activation != 'active'){
+  return;
+}
+console.log(config);
 
-    // params for setting fields
-    var TEXT_FIELD = config.textField;
-    var CHAR_COUNT_FIELD = config.charCountField;
+var rowsField = config.rowNumField;
+var tableField = config.tableField;
 
-    var CHANGE_EVENTS = ['app.record.create.change.' + TEXT_FIELD, 'app.record.edit.change.' + TEXT_FIELD,'app.record.index.edit.change.' + TEXT_FIELD];
-    var EDIT_EVENTS = ['app.record.edit.show', 'app.record.create.show', 'app.record.index.edit.show'];
 
-    //The character count field should be updated as the user types into a field.
-    //At the moment, it only updates when the user presses the ENTER key.
-    kintone.events.on(CHANGE_EVENTS, function(event) {
-        var text = event.changes.field.value;
-        text = text.replace(/\s+/g, "");
-        event.record[CHAR_COUNT_FIELD].value = text.length;
-        return event;
-    });
+var edit= ['app.record.edit.show',
+'app.record.create.show',
+ 'app.record.index.edit.show'];
 
-    //Users should not be able to directly edit the character count field.
-    kintone.events.on(EDIT_EVENTS, function (event) {
-        event.record[CHAR_COUNT_FIELD].disabled = true;
-        return event;
-    });
+var rowsChange=['app.record.create.change.'+tableField,
+'app.record.edit.change.'+tableField,
+'app.record.index.edit.change.'+tableField];
+
+
+kintone.events.on(edit, function (event) {
+var rows = event.record[tableField].value;
+var forceDefaultValue=rows[0].value[rowsField].value=1;
+rows[0].value[rowsField].value=forceDefaultValue;
+rows[0].value[rowsField].disabled=true;
+return event;
+});
+
+kintone.events.on(rowsChange,function(event){
+ var numberOfRows=event.record[tableField].value;
+ numberOfRows[0].value[rowsField].value=1;
+ for(var i=1;i<=numberOfRows.length-1;i++){
+  numberOfRows[i].value[rowsField].value=i+1;
+  numberOfRows[i].value[rowsField].disabled=true;
+ }
+
+  return event;
+});
+
 })(jQuery, kintone.$PLUGIN_ID);
