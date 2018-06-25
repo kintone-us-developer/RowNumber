@@ -7,22 +7,21 @@ var config = kintone.plugin.app.getConfig(PLUGIN_ID);
 if(config&&config.activation != 'active'){
   return;
 }
-console.log(config);
 
 var rowsField = config.rowNumField;
 var tableField = config.tableField;
 
 
-var edit= ['app.record.edit.show',
-'app.record.create.show',
- 'app.record.index.edit.show'];
+var load=['app.record.edit.show',
+          'app.record.create.show',
+          'app.record.index.edit.show'];
 
 var rowsChange=['app.record.create.change.'+tableField,
-'app.record.edit.change.'+tableField,
-'app.record.index.edit.change.'+tableField];
+                'app.record.edit.change.'+tableField,
+                'app.record.index.edit.change.'+tableField];
 
 
-kintone.events.on(edit, function (event) {
+kintone.events.on(load, function (event) {
 var rows = event.record[tableField].value;
 var forceDefaultValue=rows[0].value[rowsField].value=1;
 rows[0].value[rowsField].value=forceDefaultValue;
