@@ -1,54 +1,46 @@
 jQuery.noConflict();
 (function ($, PLUGIN_ID) {
-    "use strict";
+  "use strict";
 
-    // plug-in config
-var config = kintone.plugin.app.getConfig(PLUGIN_ID);
-if(config&&config.activation != 'active'){
-  return;
-}
-
-var rowsField = config.rowNumField;
-var tableField = config.tableField;
-
-
-var load=['app.record.edit.show',
-          'app.record.create.show',
-          'app.record.index.edit.show'];
-
-var rowsChange=['app.record.create.change.'+tableField,
-                'app.record.edit.change.'+tableField,
-                'app.record.index.edit.change.'+tableField];
-
-var editRecord=['app.record.edit.show'];
-
-
-kintone.events.on(editRecord,function(event){
-  var numberOfRows=event.record[tableField].value;
-  for(var i=0; i<=numberOfRows.length-1; i++){
-    numberOfRows[i].value[rowsField].disabled=true;
+  // plug-in config
+  var config = kintone.plugin.app.getConfig(PLUGIN_ID);
+  if(config&&config.activation != 'active'){
+    return;
   }
-  return event;
-});
 
-kintone.events.on(load, function (event) {
-var rows = event.record[tableField].value;
-var forceDefaultValue=rows[0].value[rowsField].value=1;
-rows[0].value[rowsField].value=forceDefaultValue;
-rows[0].value[rowsField].disabled=true;
+  var tableField = config.tableField;
+  var rowNumField = config.rowNumField;
 
-return event;
-});
+  var LOAD_EVENTS = ['app.record.create.show',
+                     'app.record.edit.show',
+                     'app.record.index.edit.show'];
 
-kintone.events.on(rowsChange,function(event){
- var numberOfRows=event.record[tableField].value;
- numberOfRows[0].value[rowsField].value=1;
- for(var i=1;i<=numberOfRows.length-1;i++){
-  numberOfRows[i].value[rowsField].value=i+1;
-  numberOfRows[i].value[rowsField].disabled=true;
- }
+  var ROW_CHANGE_EVENTS = ['app.record.create.change.' + tableField,
+                           'app.record.edit.change.' + tableField,
+                           'app.record.index.edit.change.' + tableField];
 
-  return event;
-});
+  kintone.events.on(LOAD_EVENTS, function(event) {
+    var rows = event.record[tableField].value;
+    //first row is always row 1.
+    rows[0].value[rowNumField].value = 1;
+    //When a record is loaded, we have to disable all the current row numbers.
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].value[rowNumField].disabled = true;
+    }
+    return event;
+  });
+
+  kintone.events.on(ROW_CHANGE_EVENTS, function(event) {
+    //Any new rows added must have their row number disabled.
+    if (event.changes.row) {
+      event.changes.row.value[rowNumField].disabled = true;
+    }
+    //then simply re-number the rows.
+    var numberOfRows = event.record[tableField].value.length;
+    for (var i = 0; i < numberOfRows; i++) {
+      event.record[tableField].value[i].value[rowNumField].value = i + 1;
+    }
+    return event;
+  });
 
 })(jQuery, kintone.$PLUGIN_ID);
